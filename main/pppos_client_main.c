@@ -20,6 +20,12 @@
 
 #define BROKER_URL "mqtt://mqtt.eclipse.org"
 
+#define PRIV_KEY "-----BEGIN EC PRIVATE KEY-----\n"\
+                 "MHcCAQEEINB98ZKA+ELOGPMB4Rh07tPdtqxIsxCAIS4wkSWstmGzoAoGCCqGSM49\n"\
+                 "AwEHoUQDQgAEfbpOGLuewJF1Dh2vcnSgVxpfF42nCAtuChQXdoARe+zgGLRpeAhc\n"\
+                 "Irj8vQXID3U0oqMdKiwnJ9BONBPMnjRZJg==\n"\
+                 "-----END EC PRIVATE KEY-----\n"
+
 static const char *TAG = "pppos_example";
 static EventGroupHandle_t event_group = NULL;
 static const int CONNECT_BIT = BIT0;
