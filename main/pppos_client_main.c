@@ -213,8 +213,8 @@ static void on_ip_event(void *arg, esp_event_base_t event_base,
 
 void app_main(void)
 {
-    ESP_LOGI(TAG, "wait for 60 seconds as a work-around for crashes");
-    vTaskDelay(60000 / portTICK_PERIOD_MS);
+    ESP_LOGI(TAG, "wait for 30 seconds as a work-around for crashes");
+    vTaskDelay(30000 / portTICK_PERIOD_MS);
 
 #if CONFIG_LWIP_PPP_PAP_SUPPORT
     esp_netif_auth_type_t auth_type = NETIF_PPP_AUTHTYPE_PAP;
