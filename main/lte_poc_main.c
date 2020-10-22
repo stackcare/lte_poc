@@ -18,13 +18,9 @@
 #include "sim800.h"
 #include "bg96.h"
 
-#define BROKER_URL "mqtt://mqtt.eclipse.org"
+#include "lte_poc.h"
 
-#define PRIV_KEY "-----BEGIN EC PRIVATE KEY-----\n"\
-                 "MHcCAQEEINB98ZKA+ELOGPMB4Rh07tPdtqxIsxCAIS4wkSWstmGzoAoGCCqGSM49\n"\
-                 "AwEHoUQDQgAEfbpOGLuewJF1Dh2vcnSgVxpfF42nCAtuChQXdoARe+zgGLRpeAhc\n"\
-                 "Irj8vQXID3U0oqMdKiwnJ9BONBPMnjRZJg==\n"\
-                 "-----END EC PRIVATE KEY-----\n"
+#define BROKER_URL "mqtt://mqtt.eclipse.org"
 
 static const char *TAG = "pppos_example";
 static EventGroupHandle_t event_group = NULL;
@@ -286,6 +282,12 @@ void app_main(void)
     esp_mqtt_client_start(mqtt_client);
     xEventGroupWaitBits(event_group, GOT_DATA_BIT, pdTRUE, pdTRUE, portMAX_DELAY);
     esp_mqtt_client_destroy(mqtt_client);
+
+    // IoT Core MQTT tests
+    mqtt_init_iotc();
+    mqtt_start();
+    // TODO: impl
+
     /* Exit PPP mode */
     ESP_ERROR_CHECK(esp_modem_stop_ppp(dte));
     /* Destroy the netif adapter withe events, which internally frees also the esp-netif instance */
