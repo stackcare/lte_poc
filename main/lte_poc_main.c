@@ -19,8 +19,10 @@
 #include "bg96.h"
 
 #include "lte_poc.h"
+#include "stackcare_protobuf.pb-c.h"
 
 #define BROKER_URL "mqtt://mqtt.eclipse.org"
+#define TOPIC_MQTT_ZONE_STATUS "/devices/%s/events/zone-status"
 
 static const char *TAG = "pppos_example";
 static EventGroupHandle_t event_group = NULL;
@@ -213,6 +215,39 @@ static void on_ip_event(void *arg, esp_event_base_t event_base,
     }
 }
 
+static uint64_t get_epoch_milli()
+{
+    struct timeval current_time;
+    uint64_t result;
+
+    gettimeofday(&current_time, NULL);
+    result = current_time.tv_sec;
+    result = result * 1000 + ((current_time.tv_usec + 500) / 1000);
+
+    return result;
+}
+
+static void publish_zone_status()
+{
+    char *publish_topic = NULL;
+    asprintf(&publish_topic, TOPIC_MQTT_ZONE_STATUS, DEVICE_ID);
+
+    ZoneStatus event = ZONE_STATUS__INIT;
+    uint8_t *msg_buf;
+    size_t msg_len;
+    event.report_time_epoch = get_epoch_milli();
+    event.has_delay = 1;
+    event.delay = 0;
+    event.zone_status = 0x32;
+    msg_len = zone_status__get_packed_size(&event);
+    msg_buf = (uint8_t *) malloc(msg_len);
+    zone_status__pack(&event, msg_buf);
+    mqtt_publish_data(publish_topic, msg_buf, msg_len);
+    free(msg_buf);
+    free(publish_topic);
+    ESP_LOGI(TAG, "MQTT published a zone status event");
+}
+
 void app_main(void)
 {
     ESP_LOGI(TAG, "wait for 30 seconds as a work-around for crashes");
@@ -273,6 +308,10 @@ void app_main(void)
     esp_netif_attach(esp_netif, modem_netif_adapter);
     /* Wait for IP address */
     xEventGroupWaitBits(event_group, CONNECT_BIT, pdTRUE, pdTRUE, portMAX_DELAY);
+
+    obtain_time();
+
+    // ESP MQTT tests
     /* Config MQTT */
     esp_mqtt_client_config_t mqtt_config = {
         .uri = BROKER_URL,
@@ -286,7 +325,10 @@ void app_main(void)
     // IoT Core MQTT tests
     mqtt_init_iotc();
     mqtt_start();
-    // TODO: impl
+    for (;;) {
+        vTaskDelay(30000 / portTICK_PERIOD_MS);
+        publish_zone_status();
+    }
 
     /* Exit PPP mode */
     ESP_ERROR_CHECK(esp_modem_stop_ppp(dte));
