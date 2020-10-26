@@ -321,13 +321,37 @@ void app_main(void)
     esp_mqtt_client_start(mqtt_client);
     xEventGroupWaitBits(event_group, GOT_DATA_BIT, pdTRUE, pdTRUE, portMAX_DELAY);
     esp_mqtt_client_destroy(mqtt_client);
+    ESP_LOGI(TAG, "ESP-IDF native MQTT test is done");
 
-    // IoT Core MQTT tests
-    mqtt_init_iotc();
-    mqtt_start();
-    for (;;) {
-        vTaskDelay(30000 / portTICK_PERIOD_MS);
-        publish_zone_status();
+    ESP_LOGI(TAG, "starting Google IoT core MQTT and other tests...");
+
+    //bool do_ping_test = false;
+    bool do_mqtt_test = true;
+    bool do_http_test = true;
+
+    int test_count = 0;
+    int max_test_count = 10;
+
+    if (do_mqtt_test) {
+        mqtt_init_iotc();
+        mqtt_start();
+        ESP_LOGI(TAG, "IoT Core MQTT is started");
+    }
+
+    while (test_count < max_test_count) {
+        if (do_mqtt_test) {
+            vTaskDelay(10000 / portTICK_PERIOD_MS);
+            publish_zone_status();
+        }
+
+        if (do_http_test) {
+            vTaskDelay(10000 / portTICK_PERIOD_MS);
+            run_http_test();
+        }
+
+        vTaskDelay(1000 / portTICK_PERIOD_MS);
+
+        test_count += 1;
     }
 
     /* Exit PPP mode */

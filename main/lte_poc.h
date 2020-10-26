@@ -30,6 +30,7 @@ typedef struct {
     bool config_on_bootup;
 } HubInfo;
 
+// mqtt.c
 esp_err_t mqtt_init_iotc();
 const char *mqtt_current_jwt();
 void mqtt_start();
@@ -37,4 +38,9 @@ void mqtt_stop();
 esp_err_t mqtt_publish(const char *topic, const char *msg);
 esp_err_t mqtt_publish_data(const char *topic, const uint8_t *msg, size_t len);
 void mqtt_attach_device(const char* device_id);
+
+// utils.c
 void obtain_time();
+
+// http_test.c
+void run_http_test();
