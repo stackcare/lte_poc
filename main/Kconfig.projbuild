@@ -120,6 +120,19 @@ menu "Example Configuration"
                 Buffer size of UART RX buffer.
     endmenu
 
+    config EXAMPLE_NUM_TEST_MESSAGES
+        int "Number of test message"
+        default 100
+        range 1 10000
+        help
+            Number of test MQTT messages to publish.
+
+    config EXAMPLE_INCLUDE_HTTP_TEST
+        bool "Include HTTP test"
+        default n
+        help
+            Include HTTP test in the test loop.
+
     config EXAMPLE_USE_WIFI
         bool "Use WiFi"
         default n

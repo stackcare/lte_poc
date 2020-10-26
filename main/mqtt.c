@@ -93,11 +93,13 @@ static char *mqtt_state_name(ss_mqtt_state_t state)
     }
 }
 
+/*
 static ss_mqtt_state_t ss_get_mqtt_state()
 {
     ss_mqtt_state_t value = s_mqtt_state;
     return value;
 }
+*/
 
 static void ss_set_mqtt_state(ss_mqtt_state_t value)
 {

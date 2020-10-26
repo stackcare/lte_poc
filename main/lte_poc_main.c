@@ -351,10 +351,8 @@ void app_main(void)
 
     //bool do_ping_test = false;
     bool do_mqtt_test = true;
-    bool do_http_test = true;
 
     int test_count = 0;
-    int max_test_count = 10;
 
     if (do_mqtt_test) {
         mqtt_init_iotc();
@@ -362,20 +360,26 @@ void app_main(void)
         ESP_LOGI(TAG, "IoT Core MQTT is started");
     }
 
-    while (test_count < max_test_count) {
+    while (test_count < CONFIG_EXAMPLE_NUM_TEST_MESSAGES) {
         if (do_mqtt_test) {
             vTaskDelay(10000 / portTICK_PERIOD_MS);
             publish_zone_status();
         }
 
+#if CONFIG_EXAMPLE_INCLUDE_HTTP_TEST
         if (do_http_test) {
             vTaskDelay(10000 / portTICK_PERIOD_MS);
             run_http_test();
         }
+#endif
 
         vTaskDelay(1000 / portTICK_PERIOD_MS);
 
         test_count += 1;
+    }
+
+    if (do_mqtt_test) {
+        mqtt_stop();
     }
 
 #if !CONFIG_EXAMPLE_USE_WIFI
