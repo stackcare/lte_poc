@@ -44,3 +44,6 @@ void obtain_time();
 
 // http_test.c
 void run_http_test();
+
+// wifi.c
+void wifi_init_sta();

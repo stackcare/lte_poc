@@ -270,7 +270,7 @@ void mqtt_start() {
     }
 
     s_dev_id_list[0] = DEVICE_ID;
-    s_dev_num = 0;
+    s_dev_num = 1;
 
     s_control_task = xTaskGetCurrentTaskHandle();
     xTaskCreate(&run_task, "mqtt_task", BUF_SIZE * 8, NULL, DEFAULT_PRIORITY, NULL);

@@ -15,6 +15,7 @@
 #include "esp_modem.h"
 #include "esp_modem_netif.h"
 #include "esp_log.h"
+#include "nvs_flash.h"
 #include "sim800.h"
 #include "bg96.h"
 
@@ -24,12 +25,15 @@
 #define BROKER_URL "mqtt://mqtt.eclipse.org"
 #define TOPIC_MQTT_ZONE_STATUS "/devices/%s/events/zone-status"
 
-static const char *TAG = "pppos_example";
+static const char *TAG = "LTE_POC";
 static EventGroupHandle_t event_group = NULL;
+#if !CONFIG_EXAMPLE_USE_WIFI
 static const int CONNECT_BIT = BIT0;
 static const int STOP_BIT = BIT1;
+#endif
 static const int GOT_DATA_BIT = BIT2;
 
+#if !CONFIG_EXAMPLE_USE_WIFI
 #if CONFIG_EXAMPLE_SEND_MSG
 /**
  * @brief This example will also show how to send short message using the infrastructure provided by esp modem library.
@@ -129,6 +133,7 @@ static void modem_event_handler(void *event_handler_arg, esp_event_base_t event_
         break;
     }
 }
+#endif
 
 static esp_err_t mqtt_event_handler(esp_mqtt_event_handle_t event)
 {
@@ -170,6 +175,7 @@ static esp_err_t mqtt_event_handler(esp_mqtt_event_handle_t event)
     return ESP_OK;
 }
 
+#if !CONFIG_EXAMPLE_USE_WIFI
 static void on_ppp_changed(void *arg, esp_event_base_t event_base,
                         int32_t event_id, void *event_data)
 {
@@ -180,7 +186,6 @@ static void on_ppp_changed(void *arg, esp_event_base_t event_base,
         ESP_LOGI(TAG, "User interrupted event from netif:%p", netif);
     }
 }
-
 
 static void on_ip_event(void *arg, esp_event_base_t event_base,
                       int32_t event_id, void *event_data)
@@ -214,6 +219,7 @@ static void on_ip_event(void *arg, esp_event_base_t event_base,
         ESP_LOGI(TAG, "Got IPv6 address " IPV6STR, IPV62STR(event->ip6_info.ip));
     }
 }
+#endif
 
 static uint64_t get_epoch_milli()
 {
@@ -250,7 +256,17 @@ static void publish_zone_status()
 
 void app_main(void)
 {
-    ESP_LOGI(TAG, "wait for 30 seconds as a work-around for crashes");
+    //Initialize NVS
+    esp_err_t ret = nvs_flash_init();
+    if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
+      ESP_ERROR_CHECK(nvs_flash_erase());
+      ret = nvs_flash_init();
+    }
+    ESP_ERROR_CHECK(ret);
+
+#if !CONFIG_EXAMPLE_USE_WIFI
+
+    ESP_LOGI(TAG, "wait for 30 seconds as a work-around for crashes in LTE mode");
     vTaskDelay(30000 / portTICK_PERIOD_MS);
 
 #if CONFIG_LWIP_PPP_PAP_SUPPORT
@@ -260,13 +276,17 @@ void app_main(void)
 #else
 #error "Unsupported AUTH Negotiation"
 #endif
+
     ESP_ERROR_CHECK(esp_netif_init());
     ESP_ERROR_CHECK(esp_event_loop_create_default());
     ESP_ERROR_CHECK(esp_event_handler_register(IP_EVENT, ESP_EVENT_ANY_ID, &on_ip_event, NULL));
     ESP_ERROR_CHECK(esp_event_handler_register(NETIF_PPP_STATUS, ESP_EVENT_ANY_ID, &on_ppp_changed, NULL));
 
+#endif
+
     event_group = xEventGroupCreate();
 
+#if !CONFIG_EXAMPLE_USE_WIFI
     // Init netif object
     esp_netif_config_t cfg = ESP_NETIF_DEFAULT_PPP();
     esp_netif_t *esp_netif = esp_netif_new(&cfg);
@@ -308,6 +328,10 @@ void app_main(void)
     esp_netif_attach(esp_netif, modem_netif_adapter);
     /* Wait for IP address */
     xEventGroupWaitBits(event_group, CONNECT_BIT, pdTRUE, pdTRUE, portMAX_DELAY);
+#else
+    ESP_LOGI(TAG, "ESP_WIFI_MODE_STA");
+    wifi_init_sta();
+#endif
 
     obtain_time();
 
@@ -354,6 +378,8 @@ void app_main(void)
         test_count += 1;
     }
 
+#if !CONFIG_EXAMPLE_USE_WIFI
+    ESP_LOGI(TAG, "taking LTE down...");
     /* Exit PPP mode */
     ESP_ERROR_CHECK(esp_modem_stop_ppp(dte));
     /* Destroy the netif adapter withe events, which internally frees also the esp-netif instance */
@@ -370,4 +396,6 @@ void app_main(void)
     ESP_LOGI(TAG, "Power down");
     ESP_ERROR_CHECK(dce->deinit(dce));
     ESP_ERROR_CHECK(dte->deinit(dte));
+    ESP_LOGI(TAG, "LTE is taken down now");
+#endif
 }
