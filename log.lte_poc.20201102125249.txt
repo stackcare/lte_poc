@@ -1,0 +1,206 @@
+ets Jun  8 2016 00:22:57
+
+rst:0x1 (POWERON_RESET),boot:0x16 (SPI_FAST_FLASH_BOOT)
+flash read err, 1000
+ets_main.c 371 
+ets Jun  8 2016 00:22:57
+
+rst:0x10 (RTCWDT_RTC_RESET),boot:0x16 (SPI_FAST_FLASH_BOOT)
+configsip: 0, SPIWP:0xee
+clk_drv:0x00,q_drv:0x00,d_drv:0x00,cs0_drv:0x00,hd_drv:0x00,wp_drv:0x00
+mode:DIO, clock div:2
+load:0x3fff0030,len:4
+load:0x3fff0034,len:6968
+load:0x40078000,len:13072
+ho 0 tail 12 room 4
+load:0x40080400,len:3896
+0x40080400: _init at ??:?
+entry 0x40080688
+[0;32mI (31) boot: ESP-IDF v4.1-dirty 2nd stage bootloader[0m
+[0;32mI (32) boot: compile time 18:47:21[0m
+[0;32mI (32) boot: chip revision: 1[0m
+[0;32mI (35) boot_comm: chip revision: 1, min. bootloader chip revision: 0[0m
+[0;32mI (42) boot.esp32: SPI Speed      : 40MHz[0m
+[0;32mI (46) boot.esp32: SPI Mode       : DIO[0m
+[0;32mI (51) boot.esp32: SPI Flash Size : 2MB[0m
+[0;32mI (55) boot: Enabling RNG early entropy source...[0m
+[0;32mI (61) boot: Partition Table:[0m
+[0;32mI (64) boot: ## Label            Usage          Type ST Offset   Length[0m
+[0;32mI (72) boot:  0 nvs              WiFi data        01 02 00009000 00006000[0m
+[0;32mI (79) boot:  1 phy_init         RF data          01 01 0000f000 00001000[0m
+[0;32mI (87) boot:  2 factory          factory app      00 00 00010000 00100000[0m
+[0;32mI (94) boot: End of partition table[0m
+[0;32mI (98) boot_comm: chip revision: 1, min. application chip revision: 0[0m
+[0;32mI (105) esp_image: segment 0: paddr=0x00010020 vaddr=0x3f400020 size=0x1d028 (118824) map[0m
+[0;32mI (160) esp_image: segment 1: paddr=0x0002d050 vaddr=0x3ffb0000 size=0x02900 ( 10496) load[0m
+[0;32mI (164) esp_image: segment 2: paddr=0x0002f958 vaddr=0x40080000 size=0x00404 (  1028) load[0m
+0x40080000: _WindowOverflow4 at /Users/jakelim/esp41/esp-idf/components/freertos/xtensa_vectors.S:1778
+[0;32mI (167) esp_image: segment 3: paddr=0x0002fd64 vaddr=0x40080404 size=0x002b4 (   692) load[0m
+[0;32mI (176) esp_image: segment 4: paddr=0x00030020 vaddr=0x400d0020 size=0x6f464 (455780) map[0m
+0x400d0020: _stext at ??:?
+[0;32mI (358) esp_image: segment 5: paddr=0x0009f48c vaddr=0x400806b8 size=0x0b5a4 ( 46500) load[0m
+[0;32mI (385) boot: Loaded app from partition at offset 0x10000[0m
+[0;32mI (385) boot: Disabling RNG early entropy source...[0m
+[0;32mI (385) cpu_start: Pro cpu up.[0m
+[0;32mI (389) cpu_start: Application information:[0m
+[0;32mI (394) cpu_start: Project name:     lte_poc[0m
+[0;32mI (399) cpu_start: App version:      865b33e[0m
+[0;32mI (404) cpu_start: Compile time:     Nov  2 2020 12:40:20[0m
+[0;32mI (410) cpu_start: ELF file SHA256:  813eb3f47772be9b...[0m
+[0;32mI (416) cpu_start: ESP-IDF:          v4.1-dirty[0m
+[0;32mI (421) cpu_start: Starting app cpu, entry point is 0x400812f8[0m
+0x400812f8: call_start_cpu1 at /Users/jakelim/esp41/esp-idf/components/esp32/cpu_start.c:271
+[0;32mI (0) cpu_start: App cpu up.[0m
+[0;32mI (432) heap_init: Initializing. RAM available for dynamic allocation:[0m
+[0;32mI (438) heap_init: At 3FFAE6E0 len 00001920 (6 KiB): DRAM[0m
+[0;32mI (444) heap_init: At 3FFB47E0 len 0002B820 (174 KiB): DRAM[0m
+[0;32mI (451) heap_init: At 3FFE0440 len 00003AE0 (14 KiB): D/IRAM[0m
+[0;32mI (457) heap_init: At 3FFE4350 len 0001BCB0 (111 KiB): D/IRAM[0m
+[0;32mI (463) heap_init: At 4008BC5C len 000143A4 (80 KiB): IRAM[0m
+[0;32mI (470) cpu_start: Pro cpu start user code[0m
+[0;32mI (488) spi_flash: detected chip: gd[0m
+[0;32mI (489) spi_flash: flash io: dio[0m
+[0;33mW (489) spi_flash: Detected size(16384k) larger than the size in the binary image header(2048k). Using the size in the binary image header.[0m
+[0;32mI (499) cpu_start: Starting scheduler on PRO CPU.[0m
+[0;32mI (0) cpu_start: Starting scheduler on APP CPU.[0m
+[0;32mI (531) LTE_POC: wait for 30 seconds as a work-around for crashes in LTE mode[0m
+[0;32mI (30531) uart: queue free spaces: 30[0m
+[0;32mI (31681) LTE_POC: Module: BG96[0m
+[0;32mI (31681) LTE_POC: Operator: "AT&T Hologram"[0m
+[0;32mI (31681) LTE_POC: IMEI: 864431046996759[0m
+[0;32mI (31681) LTE_POC: IMSI: 234500007343265[0m
+[0;32mI (31881) LTE_POC: rssi: 15, ber: 99[0m
+[0;32mI (32081) LTE_POC: Battery voltage: 5068 mV[0m
+[0;32mI (32281) LTE_POC: Modem PPP Started[0m
+[0;32mI (32581) esp-netif_lwip-ppp: Connected[0m
+[0;32mI (32581) esp-netif_lwip-ppp: Name Server1: 212.9.0.135[0m
+[0;32mI (32581) esp-netif_lwip-ppp: Name Server2: 212.9.0.136[0m
+[0;32mI (32581) LTE_POC: Modem Connect to PPP Server[0m
+[0;32mI (32591) LTE_POC: ~~~~~~~~~~~~~~[0m
+[0;32mI (32591) LTE_POC: IP          : 10.155.2.195[0m
+[0;32mI (32601) LTE_POC: Netmask     : 255.255.255.255[0m
+[0;32mI (32601) LTE_POC: Gateway     : 10.64.64.64[0m
+[0;32mI (32611) LTE_POC: Name Server1: 212.9.0.135[0m
+[0;32mI (32611) LTE_POC: Name Server2: 212.9.0.136[0m
+[0;32mI (32621) LTE_POC: ~~~~~~~~~~~~~~[0m
+[0;32mI (32621) LTE_POC: GOT ip event!!![0m
+[0;32mI (32621) Utils: Initializing SNTP[0m
+[0;32mI (36631) Utils: Current Time : Mon Nov  2 20:53:28 2020[0m
+[0;32mI (36631) system_api: Base MAC address is not set, read default base MAC address from BLK0 of EFUSE[0m
+[0;32mI (36631) LTE_POC: MQTT other event id: 7[0m
+[0;32mI (37651) LTE_POC: MQTT_EVENT_CONNECTED[0m
+[0;32mI (37651) LTE_POC: sent subscribe successful, msg_id=60709[0m
+[0;32mI (38011) LTE_POC: MQTT_EVENT_SUBSCRIBED, msg_id=60709[0m
+[0;32mI (38011) LTE_POC: sent publish successful, msg_id=0[0m
+[0;32mI (38361) LTE_POC: MQTT_EVENT_DATA[0m
+TOPIC=/topic/esp-pppos
+DATA=esp32-pppos
+[0;32mI (38641) LTE_POC: ESP-IDF native MQTT test is done[0m
+[0;32mI (38641) LTE_POC: starting Google IoT core MQTT and other tests...[0m
+[0;32mI (38991) Mqtt: JWT created: eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE2MDQzNTA0MTEsImV4cCI6MTYwNDQzNjgxMSwiYXVkIjoiY2FyZS1hcGktdGVzdCJ9.gjGgNbIytNfisw7vIBsMN1XIiTxHnDfgowrwzp7PmOZ02swo4SK8M0RV0AdXyaJBvNiFY4igZBAJLvyqrg7rrg==[0m
+[0;32mI (39001) Mqtt: HUB ID TO CONNECT TO : o9apqw9aoqp6rg6ddxb8ork86rmraa[0m
+[0;32mI (39011) Mqtt: command topic constructed: /devices/o9apqw9aoqp6rg6ddxb8ork86rmraa/commands/#[0m
+D (39021) Mqtt: command topic name without suffix also created[0m
+[0;32mI (39021) Mqtt: config topic constructed: /devices/o9apqw9aoqp6rg6ddxb8ork86rmraa/config[0m
+[0;32mI (39031) Mqtt: device_path: projects/care-api-test/locations/us-central1/registries/care-mqtt/devices/o9apqw9aoqp6rg6ddxb8ork86rmraa[0m
+[0;32mI (39041) Mqtt: JWT token: eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE2MDQzNTA0MTEsImV4cCI6MTYwNDQzNjgxMSwiYXVkIjoiY2FyZS1hcGktdGVzdCJ9.gjGgNbIytNfisw7vIBsMN1XIiTxHnDfgowrwzp7PmOZ02swo4SK8M0RV0AdXyaJBvNiFY4igZBAJLvyqrg7rrg==[0m
+[0;32mI (39071) Mqtt: connection requested[0m
+[0;32mI (39071) LTE_POC: IoT Core MQTT is started[0m
+[0;32mI (44911) Mqtt: IOTC_CONNECTION_STATE_OPENED[0m
+[0;32mI (44911) Mqtt: Connected![0m
+[0;32mI (44911) Mqtt: mqtt state changed. SS_MQTT_NOT_ACTIVATED --> SS_MQTT_CONNECTED[0m
+[0;32mI (44921) Mqtt: publishing device attachment to /devices/k5b56jrnv8qwrykm8dqokgjpyxxry8/attach[0m
+[0;32mI (44931) Mqtt: publish request id: 0, state: 0[0m
+[0;32mI (45591) Mqtt: Subscription Topic: /devices/o9apqw9aoqp6rg6ddxb8ork86rmraa/commands/#[0m
+[0;32mI (45591) Mqtt: Message Payload:  [0m
+[0;32mI (45591) Mqtt: MQTT command received[0m
+[0;32mI (45601) Mqtt: Subscription Topic: /devices/o9apqw9aoqp6rg6ddxb8ork86rmraa/config[0m
+[0;32mI (45601) Mqtt: Message Payload:  [0m
+[0;32mI (45611) Mqtt: MQTT config received[0m
+[0;32mI (46261) Mqtt: Subscription Topic: /devices/o9apqw9aoqp6rg6ddxb8ork86rmraa/config[0m
+[0;32mI (46261) Mqtt: Message Payload: {"installed_site_id": "n86mkvqomor7odp85zkojgoezrjw9n", "created_at": "2020-10-21T22:49:53", "module_version": "1.0.0.6", "wifi_channel_secondary": 0, "os_update_version": null, "test_mode_on": null, "software_vs": "1.5.1.0", "wifi_rssi": -59, "connection_type": "wifi", "id": "o9apqw9aoqp6rg6ddxb8ork86rmraa", "last_contact_time": "2020-10-23T19:57:09", "update_start_time": null, "test_mode_zone_id": null, "model": "Non-LTE 1.0.14", "zigbee_pan_id": 44167, "wifi_mac_address": "4C11AE6E37B8", "zigbee_channel": 19, "mac_address": "5EFFFEDBEF97", "site_id": "n86mkvqomor7odp85zkojgoezrjw9n", "ip": "192.168.1.5", "test_mode_change_time": null, "sw_update_start": null, "wifi_supported_modes": "b", "device_detect_change_time": null, "wifi_ap_bssid": "B039564DFFB6", "wifi_auth_mode": "WPA2_PSK", "wifi_ssid": "NETGEAR69", "sw_update_required": null, "ssid": null, "is_multi_site": null, "public_key": "-----BEGIN PUBLIC KEY-----\nMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEpPtrY7c07tIdk4DLeVDWRQ0Oz+nW\nqzECNWkRHtEE0CkVF3lDF+zh26b9xUe3TM7Iw/xpzxg6iOG4zpnY3VdqCw==\n-----END PUBLIC KEY-----\n", "device_detect_on": null, "manufacturer": "Vesta", "os_version": null, "wifi_channel_primary": 3, "is_connected": true, "sw_update_version": null, "pan_id": 44167, "channel": 19} [0m
+[0;32mI (46371) Mqtt: MQTT config received[0m
+[0;32mI (46381) Mqtt: publishing completed for id: 0, state: 0[0m
+[0;32mI (49071) Mqtt: publish request id: 1, state: 0[0m
+[0;32mI (49071) LTE_POC: MQTT published a zone status event[0m
+[0;32mI (52291) Mqtt: publishing completed for id: 1, state: 0[0m
+[0;32mI (60071) Mqtt: publish request id: 2, state: 0[0m
+[0;32mI (60071) LTE_POC: MQTT published a zone status event[0m
+[0;32mI (63031) Mqtt: publishing completed for id: 2, state: 0[0m
+[0;32mI (71071) Mqtt: publish request id: 3, state: 0[0m
+[0;32mI (71071) LTE_POC: MQTT published a zone status event[0m
+[0;32mI (73821) Mqtt: publishing completed for id: 3, state: 0[0m
+[0;32mI (82071) Mqtt: publish request id: 4, state: 0[0m
+[0;32mI (82071) LTE_POC: MQTT published a zone status event[0m
+[0;32mI (84621) Mqtt: publishing completed for id: 4, state: 0[0m
+[0;32mI (93071) Mqtt: publish request id: 5, state: 0[0m
+[0;32mI (93071) LTE_POC: MQTT published a zone status event[0m
+[0;32mI (95581) Mqtt: publishing completed for id: 5, state: 0[0m
+[0;32mI (104071) Mqtt: publish request id: 6, state: 0[0m
+[0;32mI (104071) LTE_POC: MQTT published a zone status event[0m
+[0;32mI (106601) Mqtt: publishing completed for id: 6, state: 0[0m
+[0;32mI (115071) Mqtt: publish request id: 7, state: 0[0m
+[0;32mI (115071) LTE_POC: MQTT published a zone status event[0m
+[0;32mI (117891) Mqtt: publishing completed for id: 7, state: 0[0m
+[0;32mI (126071) Mqtt: publish request id: 8, state: 0[0m
+[0;32mI (126071) LTE_POC: MQTT published a zone status event[0m
+[0;32mI (128861) Mqtt: publishing completed for id: 8, state: 0[0m
+[0;32mI (137071) Mqtt: publish request id: 9, state: 0[0m
+[0;32mI (137071) LTE_POC: MQTT published a zone status event[0m
+[0;32mI (139811) Mqtt: publishing completed for id: 9, state: 0[0m
+[0;32mI (148071) Mqtt: publish request id: 10, state: 0[0m
+[0;32mI (148071) LTE_POC: MQTT published a zone status event[0m
+[0;32mI (150551) Mqtt: publishing completed for id: 10, state: 0[0m
+[0;32mI (159071) Mqtt: publish request id: 11, state: 0[0m
+[0;32mI (159071) LTE_POC: MQTT published a zone status event[0m
+[0;32mI (161941) Mqtt: publishing completed for id: 11, state: 0[0m
+[0;32mI (170071) Mqtt: publish request id: 12, state: 0[0m
+[0;32mI (170071) LTE_POC: MQTT published a zone status event[0m
+[0;32mI (172951) Mqtt: publishing completed for id: 12, state: 0[0m
+[0;33mW (178261) Mqtt: IOTC_CONNECTION_STATE_CLOSED. reason: 15[0m
+[0;32mI (178261) Mqtt: mqtt state changed. SS_MQTT_CONNECTED --> SS_MQTT_DISCONNECTED_RETRYING[0m
+[0;32mI (178261) Mqtt: attempting to reconnect to MQTT...[0m
+[0;32mI (178661) Mqtt: JWT created: eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE2MDQzNTA1NTAsImV4cCI6MTYwNDQzNjk1MCwiYXVkIjoiY2FyZS1hcGktdGVzdCJ9.EwZUcdUX7tM28Qcr4vCAuAhriPVTGT_d3nuE7o7Uf5Js304wF8Kij1AXg40LGtdyUzpUNw6hlyOgQIGWfZDxnA==[0m
+[0;32mI (178681) Mqtt: IOTC_CONNECTION_STATE_OPEN_FAILED[0m
+[0;33mW (178681) Mqtt: ERROR!	Connection has failed. Reason 12[0m
+[0;32mI (178681) Mqtt: mqtt state changed. SS_MQTT_DISCONNECTED_RETRYING --> SS_MQTT_DISCONNECTED_RETRYING[0m
+[0;32mI (178691) Mqtt: attempting to reconnect to MQTT...[0m
+[0;32mI (179071) Mqtt: JWT created: eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE2MDQzNTA1NTEsImV4cCI6MTYwNDQzNjk1MSwiYXVkIjoiY2FyZS1hcGktdGVzdCJ9.p_0d-PXGKFKkRP0jK1Ar0X3XPqCaqpIPY6szYxgjC4m3glcgypfXOulRvmXQFKTu3BHW8Gyh2A4AjlIiE1rHuA==[0m
+[0;32mI (181071) Mqtt: publish request id: 13, state: 6[0m
+[0;32mI (181071) LTE_POC: MQTT published a zone status event[0m
+[0;32mI (184081) Mqtt: IOTC_CONNECTION_STATE_OPEN_FAILED[0m
+[0;33mW (184081) Mqtt: ERROR!	Connection has failed. Reason 12[0m
+[0;32mI (184091) Mqtt: mqtt state changed. SS_MQTT_DISCONNECTED_RETRYING --> SS_MQTT_DISCONNECTED_RETRYING[0m
+[0;32mI (184091) Mqtt: attempting to reconnect to MQTT...[0m
+[0;32mI (184251) esp-netif_lwip-ppp: Connection lost[0m
+[0;32mI (184251) LTE_POC: Modem Disconnect from PPP Server[0m
+[0;32mI (184491) Mqtt: JWT created: eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE2MDQzNTA1NTYsImV4cCI6MTYwNDQzNjk1NiwiYXVkIjoiY2FyZS1hcGktdGVzdCJ9.X0rvWQ09E-4fOGHVCqfbn4D25GWyGkevof-dvXC_-A1AchAhYQP1bI--T1LSApfI2lbtPVV7M5_N3S4KvGos0w==[0m
+[0;32mI (192071) Mqtt: publish request id: 14, state: 6[0m
+[0;32mI (192071) LTE_POC: MQTT published a zone status event[0m
+[0;32mI (192501) Mqtt: IOTC_CONNECTION_STATE_OPEN_FAILED[0m
+[0;33mW (192501) Mqtt: ERROR!	Connection has failed. Reason 12[0m
+[0;32mI (192501) Mqtt: mqtt state changed. SS_MQTT_DISCONNECTED_RETRYING --> SS_MQTT_DISCONNECTED_RETRYING[0m
+[0;32mI (192511) Mqtt: attempting to reconnect to MQTT...[0m
+[0;32mI (192901) Mqtt: JWT created: eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE2MDQzNTA1NjUsImV4cCI6MTYwNDQzNjk2NSwiYXVkIjoiY2FyZS1hcGktdGVzdCJ9.ILpH7a0XyaQTyNzCHdRj90QTIC1N3M5PGBjV0QDCUXwoWqtqayrzL8EuE6Gabsjq-EEnid5vV2654zCl2YGCNw==[0m
+[0;32mI (203071) Mqtt: publish request id: 15, state: 6[0m
+[0;32mI (203071) LTE_POC: MQTT published a zone status event[0m
+[0;32mI (209911) Mqtt: IOTC_CONNECTION_STATE_OPEN_FAILED[0m
+[0;33mW (209911) Mqtt: ERROR!	Connection has failed. Reason 12[0m
+[0;32mI (209911) Mqtt: mqtt state changed. SS_MQTT_DISCONNECTED_RETRYING --> SS_MQTT_DISCONNECTED_RETRYING[0m
+[0;32mI (209921) Mqtt: attempting to reconnect to MQTT...[0m
+[0;32mI (210321) Mqtt: JWT created: eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE2MDQzNTA1ODIsImV4cCI6MTYwNDQzNjk4MiwiYXVkIjoiY2FyZS1hcGktdGVzdCJ9.1vph2YaJVMIC7HxCJhNhT2rM1YjdCT5du2WTCDDvEnXeFFQQ6JqaaMzcY5MHAfVugReDqXotsJZ_BC7y5kq4VQ==[0m
+[0;32mI (214071) Mqtt: publish request id: 16, state: 6[0m
+[0;32mI (214071) LTE_POC: MQTT published a zone status event[0m
+[0;32mI (225071) Mqtt: publish request id: 17, state: 6[0m
+[0;32mI (225071) LTE_POC: MQTT published a zone status event[0m
+[0;32mI (234331) Mqtt: IOTC_CONNECTION_STATE_OPEN_FAILED[0m
+[0;33mW (234331) Mqtt: ERROR!	Connection has failed. Reason 12[0m
+[0;32mI (234331) Mqtt: mqtt state changed. SS_MQTT_DISCONNECTED_RETRYING --> SS_MQTT_DISCONNECTED_RETRYING[0m
+[0;32mI (234341) Mqtt: attempting to reconnect to MQTT...[0m
+[0;32mI (234731) Mqtt: JWT created: eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE2MDQzNTA2MDYsImV4cCI6MTYwNDQzNzAwNiwiYXVkIjoiY2FyZS1hcGktdGVzdCJ9.X9ZprasL68mqJKfK0ORaa-Mu2tgH8ChxWDA_lLNddvkZXmrZUrxQ40W-evqtE4kPXzznt16d30HG2gH5jqkf2A==[0m
+[0;32mI (236071) Mqtt: publish request id: 18, state: 6[0m
+[0;32mI (236071) LTE_POC: MQTT published a zone status event[0m
+[0;32mI (247071) Mqtt: publish request id: 19, state: 6[0m
+[0;32mI (247071) LTE_POC: MQTT published a zone status event[0m
+[0;32mI (258071) Mqtt: publish request id: 20, state: 6[0m
+[0;32mI (258071) LTE_POC: MQTT published a zone status event[0m

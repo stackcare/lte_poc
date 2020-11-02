@@ -189,13 +189,15 @@ const char *mqtt_current_jwt()
 
 static void check_offline()
 {
-    bool seems_offline = (s_publish_count - s_publish_confirmed) > OFFLINE_THRESHOLD;
+    int pending = s_publish_count - s_publish_confirmed;
+    ESP_LOGD(TAG, "acknowledgement pending number: %d", pending);
+    bool seems_offline = pending > OFFLINE_THRESHOLD;
     if (s_is_offline != seems_offline) {
         s_is_offline = seems_offline;
         if (s_is_offline) {
             time(&s_offline_time);
             //zb_set_led(YELLOW, ON);
-            ESP_LOGW(TAG, "MQTT gone offline");
+            ESP_LOGW(TAG, "Too many messages pending. MQTT seems offline");
         } else {
             //zb_set_led(YELLOW, OFF);
             ESP_LOGI(TAG, "MQTT is back online");
