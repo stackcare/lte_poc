@@ -189,9 +189,9 @@ const char *mqtt_current_jwt()
 
 static void check_offline()
 {
-    int pending = s_publish_count - s_publish_confirmed;
-    ESP_LOGD(TAG, "acknowledgement pending number: %d", pending);
-    bool seems_offline = pending > OFFLINE_THRESHOLD;
+    int diff = s_publish_count - s_publish_confirmed;
+    ESP_LOGD(TAG, "acknowledgement pending: %d", diff - 1);
+    bool seems_offline = diff > OFFLINE_THRESHOLD;
     if (s_is_offline != seems_offline) {
         s_is_offline = seems_offline;
         if (s_is_offline) {

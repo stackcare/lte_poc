@@ -70,6 +70,9 @@ static void http_rest_with_url()
         ESP_LOGE(TAG, "HTTP GET request failed: %s", esp_err_to_name(err));
     }
 
+    bool get_only = true;
+    if (get_only) goto end;
+
     // POST
     const char *post_data = "field1=value1&field2=value2";
     esp_http_client_set_url(client, "http://httpbin.org/post");
@@ -133,6 +136,7 @@ static void http_rest_with_url()
         ESP_LOGE(TAG, "HTTP HEAD request failed: %s", esp_err_to_name(err));
     }
 
+ end:
     esp_http_client_cleanup(client);
 }
 

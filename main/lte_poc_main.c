@@ -367,10 +367,8 @@ void app_main(void)
         }
 
 #if CONFIG_EXAMPLE_INCLUDE_HTTP_TEST
-        if (do_http_test) {
-            vTaskDelay(10000 / portTICK_PERIOD_MS);
-            run_http_test();
-        }
+        vTaskDelay(10000 / portTICK_PERIOD_MS);
+        run_http_test();
 #endif
 
         vTaskDelay(1000 / portTICK_PERIOD_MS);
