@@ -205,9 +205,8 @@ void app_main(void)
 
     int test_count = 0;
     int success_count = 0;
-    int num_test_messages = 1000;
     
-    while (test_count < num_test_messages) {
+    while (test_count < CONFIG_EXAMPLE_NUM_TEST_MESSAGES) {
         if (run_http_test() == ESP_OK) {
             success_count += 1;
         }

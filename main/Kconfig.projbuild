@@ -40,6 +40,13 @@ menu "Example Configuration"
         help
             Delay 30 seconds before initializing LTE in order to work around crashes
 
+    config EXAMPLE_NUM_TEST_MESSAGES
+        int "Number of test message"
+        default 100
+        range 1 10000
+        help
+            Number of HTTP or MQTT test iteration
+
     config EXAMPLE_SEND_MSG
         bool "Short message (SMS)"
         default n
