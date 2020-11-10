@@ -34,6 +34,12 @@ menu "Example Configuration"
         help
             Set password for PPP Authentication.
 
+    config EXAMPLE_DELAY_LTE_INIT
+        bool "Delay before LTE init"
+        default n
+        help
+            Delay 30 seconds before initializing LTE in order to work around crashes
+
     config EXAMPLE_SEND_MSG
         bool "Short message (SMS)"
         default n
