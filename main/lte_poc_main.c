@@ -138,6 +138,10 @@ void app_main(void)
     vTaskDelay(30000 / portTICK_PERIOD_MS);
 #endif
 
+    lte_uart_start();
+    lte_register_network();
+    lte_stop_listen();
+
 #if CONFIG_LWIP_PPP_PAP_SUPPORT
     esp_netif_auth_type_t auth_type = NETIF_PPP_AUTHTYPE_PAP;
 #elif CONFIG_LWIP_PPP_CHAP_SUPPORT
