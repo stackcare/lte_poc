@@ -140,6 +140,8 @@ void app_main(void)
 
     lte_uart_start();
     lte_register_network();
+    LteInfo lte_info = lte_get_info();
+    ESP_LOGI(TAG, "LTE quality: %d", lte_info.signal_quality);
     lte_stop_listen();
 
 #if CONFIG_LWIP_PPP_PAP_SUPPORT
