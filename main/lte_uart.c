@@ -323,4 +323,7 @@ void lte_register_network()
 
         vTaskDelay(5000 / portTICK_PERIOD_MS);
     }
+
+    enqueue_command("+QENG=\"servingcell\"");
+    send_next_command();
 }
