@@ -3,7 +3,7 @@
 # project subdirectory.
 #
 
-PROJECT_NAME := lte_poc
+PROJECT_NAME := pppos_client
 
 include $(IDF_PATH)/make/project.mk
 

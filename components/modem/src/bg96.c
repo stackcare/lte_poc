@@ -15,6 +15,13 @@
 #include <string.h>
 #include "esp_log.h"
 #include "bg96.h"
+#include "esp_modem.h"
+#include <sys/param.h>
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+#include "freertos/semphr.h"
+
+#include "../../main/include/database.h"
 
 #define MODEM_RESULT_CODE_POWERDOWN "POWERED DOWN"
 
@@ -33,14 +40,8 @@ static const char *DCE_TAG = "bg96";
         }                                                                             \
     } while (0)
 
-/**
- * @brief BG96 Modem
- *
- */
-typedef struct {
-    void *priv_resource; /*!< Private resource */
-    modem_dce_t parent;  /*!< DCE parent class */
-} bg96_modem_dce_t;
+
+bg96_modem_dce_t *g_bg96_dce;
 
 /**
  * @brief Handle response from AT+CSQ
@@ -280,6 +281,7 @@ err:
     return ESP_FAIL;
 }
 
+
 /**
  * @brief Set Working Mode
  *
@@ -297,14 +299,14 @@ static esp_err_t bg96_set_working_mode(modem_dce_t *dce, modem_mode_t mode)
         dce->handle_line = bg96_handle_exit_data_mode;
         DCE_CHECK(dte->send_cmd(dte, "+++", MODEM_COMMAND_TIMEOUT_MODE_CHANGE) == ESP_OK, "send command failed", err);
         DCE_CHECK(dce->state == MODEM_STATE_SUCCESS, "enter command mode failed", err);
-        ESP_LOGD(DCE_TAG, "enter command mode ok");
+        //ESP_LOGI(DCE_TAG, "enter command mode ok");
         dce->mode = MODEM_COMMAND_MODE;
         break;
     case MODEM_PPP_MODE:
         dce->handle_line = bg96_handle_atd_ppp;
-        DCE_CHECK(dte->send_cmd(dte, "ATD*99***1#\r", MODEM_COMMAND_TIMEOUT_MODE_CHANGE) == ESP_OK, "send command failed", err);
+        DCE_CHECK(dte->send_cmd(dte, "ATD*99#\r", MODEM_COMMAND_TIMEOUT_MODE_CHANGE) == ESP_OK, "send command failed", err);
         DCE_CHECK(dce->state == MODEM_STATE_SUCCESS, "enter ppp mode failed", err);
-        ESP_LOGD(DCE_TAG, "enter ppp mode ok");
+        ESP_LOGI(DCE_TAG, "enter ppp mode ok");
         dce->mode = MODEM_PPP_MODE;
         break;
     default:
@@ -316,6 +318,7 @@ static esp_err_t bg96_set_working_mode(modem_dce_t *dce, modem_mode_t mode)
 err:
     return ESP_FAIL;
 }
+
 
 /**
  * @brief Power down
@@ -338,7 +341,351 @@ err:
 }
 
 /**
+ * @brief Handle response from AT+CGREG?
+ */
+static esp_err_t bg96_handle_cgreg(modem_dce_t *dce, const char *line)
+{
+    esp_err_t err = ESP_FAIL;
+    char * ptr_out = NULL;
+    char * ptr_status = NULL;
+    if (strstr(line, MODEM_RESULT_CODE_SUCCESS)) {
+        printf("OK \n");
+        err = esp_modem_process_command_done(dce, MODEM_STATE_SUCCESS);
+    } else if (strstr(line, MODEM_RESULT_CODE_ERROR)) {
+        err = esp_modem_process_command_done(dce, MODEM_STATE_FAIL);
+    } else {
+        ptr_out= strtok_r(line, ",", &ptr_status);
+        if(ptr_out && ptr_status){
+            if (strstr(ptr_out,"+CGREG")) {
+                printf("cgreg status %c \n",*ptr_status);
+                dce->conStatus = *ptr_status;
+                err = ESP_OK;
+                //int len = snprintf(dce->imsi, MODEM_IMSI_LENGTH + 1, "%s", line);
+                //strip_cr_lf_tail(dce->imei, len);
+            }
+        }
+        
+    }
+    return ESP_OK;
+}
+
+/**
  * @brief Get DCE module name
+ *
+ * @param bg96_dce bg96 object
+ * @return esp_err_t
+ *      - ESP_OK on success
+ *      - ESP_FAIL on error
+ */
+static esp_err_t bg96_get_lte_connect_status(bg96_modem_dce_t *bg96_dce)
+{
+    modem_dte_t *dte = bg96_dce->parent.dte;
+    bg96_dce->parent.handle_line = bg96_handle_cgreg;
+    dte->send_cmd(dte, "AT+CGREG?\r", MODEM_COMMAND_TIMEOUT_DEFAULT+2500);
+    ESP_LOGD(DCE_TAG, "get cgreg ok");
+    return ESP_OK;
+
+}
+
+/**
+ * @brief Handle response from AT+CGREG?
+ */
+static esp_err_t bg96_handle_simcard_cpin(modem_dce_t *dce, const char *line)
+{
+    esp_err_t err = ESP_FAIL;
+    
+    if (strstr(line, MODEM_RESULT_CODE_SUCCESS)) {
+        printf("OK \n");
+        err = esp_modem_process_command_done(dce, MODEM_STATE_SUCCESS);
+    } else if (strstr(line, MODEM_RESULT_CODE_ERROR)) {
+        err = esp_modem_process_command_done(dce, MODEM_STATE_FAIL);
+    } else {
+        printf("CPIN  %s\n",line);
+		if(strlen(line) == 5){
+			return ESP_OK;	
+		}
+        if (strstr(line,"+CPIN") && strstr(line,"READY")) {
+            dce->simCard_state = 1;
+        }
+    }
+    return ESP_OK;
+}
+
+/**
+ * @brief Get DCE module name
+ *
+ * @param bg96_dce bg96 object
+ * @return esp_err_t
+ *      - ESP_OK on success
+ *      - ESP_FAIL on error
+ */
+static esp_err_t bg96_get_simCard_state(bg96_modem_dce_t *bg96_dce)
+{
+    modem_dte_t *dte = bg96_dce->parent.dte;
+    bg96_dce->parent.handle_line = bg96_handle_simcard_cpin;
+    dte->send_cmd(dte, "AT+CPIN?\r", MODEM_COMMAND_TIMEOUT_DEFAULT);
+    ESP_LOGD(DCE_TAG, "get cpin ok");
+    return ESP_OK;
+}
+
+
+
+/**
+ * @brief Handle response from AT+QENG="servingcell"
+ */
+static esp_err_t bg96_handle_servingcell(modem_dce_t *dce, const char *line)
+{
+    esp_err_t err = ESP_FAIL;
+    
+    if (strstr(line, MODEM_RESULT_CODE_SUCCESS)) {
+        //printf("OK \n");
+        err = esp_modem_process_command_done(dce, MODEM_STATE_SUCCESS);
+    } else if (strstr(line, MODEM_RESULT_CODE_ERROR)) {
+        err = esp_modem_process_command_done(dce, MODEM_STATE_FAIL);
+    } else {
+        size_t len = strlen(line);
+        char *line_copy = malloc(len + 1);
+        strcpy(line_copy, line);
+        uint8_t i = 0,j = 0;
+        char *p[17] = {{NULL}},*ptr = NULL;
+        memset(&dce->servingcell,0,sizeof(dce->servingcell));
+        /* strtok will broke string by replacing delimiter with '\0' */
+        ptr = strtok(line_copy, ",");
+        while (ptr) {
+            p[i] = ptr;
+            ++i;
+            ptr = strtok(NULL, ",");
+        }
+        //printf("servingcell  %s\n",line);
+        if(p[13]){
+            strcpy(dce->servingcell.rsrp,p[13]);
+        }
+        if(p[14]){
+            strcpy(dce->servingcell.rsrq,p[14]);
+        }
+        if(p[15]){
+            strcpy(dce->servingcell.rssi,p[15]);
+        }
+        
+        
+        /* if (i >= 3) {
+             for(j = 0; j < i;j++)
+             printf(" %s\n",p[j]);
+        } */
+        free(line_copy);
+
+        //
+        err = ESP_OK;
+        
+    }
+    return err;
+}
+
+/**
+ * @brief Get DCE servingcell
+ *
+ * @param bg96_dce bg96 object
+ * @return esp_err_t
+ *      - ESP_OK on success
+ *      - ESP_FAIL on error
+ */
+esp_err_t bg96_get_servingcell(bg96_modem_dce_t *bg96_dce)
+{
+    modem_dte_t *dte = bg96_dce->parent.dte;
+    bg96_dce->parent.handle_line = bg96_handle_servingcell;
+    dte->send_cmd(dte, "AT+QENG=\"servingcell\"\r", MODEM_COMMAND_TIMEOUT_DEFAULT);
+    ESP_LOGD(DCE_TAG, "get cpin ok");
+    return ESP_OK;
+
+}
+
+/**
+ * @brief Handle response from AT+QENG="servingcell"
+ */
+static esp_err_t bg96_handle_activeUartRate(modem_dce_t *dce, const char *line)
+{
+    esp_err_t err = ESP_FAIL;
+    
+    if (strstr(line, MODEM_RESULT_CODE_SUCCESS)) {
+        
+        printf("active uart rate OK \n");
+        dce->uartRate_set_status = 2;
+        err = esp_modem_process_command_done(dce, MODEM_STATE_SUCCESS);
+    } else if (strstr(line, MODEM_RESULT_CODE_ERROR)) {
+        err = esp_modem_process_command_done(dce, MODEM_STATE_FAIL);
+    } else {
+        printf("servingcell  %s\n",line);
+        err = ESP_OK;
+        
+    }
+    return err;
+}
+
+/**
+ * @brief Get DCE servingcell
+ *
+ * @param bg96_dce bg96 object
+ * @return esp_err_t
+ *      - ESP_OK on success
+ *      - ESP_FAIL on error
+ */
+static esp_err_t bg96_active_uartRate(bg96_modem_dce_t *bg96_dce)
+{
+    modem_dte_t *dte = bg96_dce->parent.dte;
+    bg96_dce->parent.handle_line = bg96_handle_activeUartRate;
+    dte->send_cmd(dte, "AT&W\r", MODEM_COMMAND_TIMEOUT_DEFAULT);
+    ESP_LOGD(DCE_TAG, "set uart rate ok");
+    return ESP_OK;
+}
+
+/**
+ * @brief Handle response from AT+QENG="servingcell"
+ */
+static esp_err_t bg96_handle_setUartRate(modem_dce_t *dce, const char *line)
+{
+    esp_err_t err = ESP_FAIL;
+    
+    if (strstr(line, MODEM_RESULT_CODE_SUCCESS)) {
+        dce->uartRate_set_status = 1;
+        err = esp_modem_process_command_done(dce, MODEM_STATE_SUCCESS);
+    } else if (strstr(line, MODEM_RESULT_CODE_ERROR)) {
+        err = esp_modem_process_command_done(dce, MODEM_STATE_FAIL);
+    } else {
+        printf("set uart rate  %s\n",line);
+        err = ESP_OK;
+        
+    }
+    return err;
+}
+
+/**
+ * @brief Get DCE servingcell
+ *
+ * @param bg96_dce bg96 object
+ * @return esp_err_t
+ *      - ESP_OK on success
+ *      - ESP_FAIL on error
+ */
+static esp_err_t bg96_set_uartRate(bg96_modem_dce_t *bg96_dce)
+{
+    modem_dte_t *dte = bg96_dce->parent.dte;
+    bg96_dce->parent.handle_line = bg96_handle_setUartRate;
+    dte->send_cmd(dte, "AT+IPR=921600\r", MODEM_COMMAND_TIMEOUT_SET_UART_RATE);
+    ESP_LOGD(DCE_TAG, "set uart rate ok");
+    return ESP_OK;
+}
+
+/**
+ * @brief Handle response from AT+QENG="servingcell"
+ */
+static esp_err_t bg96_handle_switch_pppMode(modem_dce_t *dce, const char *line)
+{
+    modem_dte_t *dte = dce->dte;
+    esp_modem_dte_t *esp_dte = __containerof(dte, esp_modem_dte_t, parent);
+    esp_err_t err = ESP_FAIL;
+    //printf("switch_pppMode  %s\n",line);
+    err = esp_modem_process_command_done(dce, MODEM_STATE_SUCCESS);
+    dce->mode = MODEM_PPP_MODE;
+    uart_disable_pattern_det_intr(esp_dte->uart_port);
+    uart_enable_rx_intr(esp_dte->uart_port);
+    err = ESP_OK;
+        
+    return ESP_OK;
+}
+
+/**
+ * @brief Get DCE servingcell
+ *
+ * @param bg96_dce bg96 object
+ * @return esp_err_t
+ *      - ESP_OK on success
+ *      - ESP_FAIL on error
+ */
+esp_err_t bg96_switch_pppMode(bg96_modem_dce_t *bg96_dce)
+{
+    modem_dte_t *dte = bg96_dce->parent.dte;
+    bg96_dce->parent.handle_line = bg96_handle_switch_pppMode;
+    dte->send_cmd(dte, "ATO\r", MODEM_COMMAND_TIMEOUT_SET_UART_RATE);
+    //bg96_dce->parent.mode = MODEM_PPP_MODE;
+    return ESP_OK;
+}
+
+
+
+/**
+ * @brief Handle response from AT+QENG="servingcell"
+ */
+static esp_err_t bg96_handle_get_firmware_ver(modem_dce_t *dce, const char *line)
+{
+    esp_err_t err = ESP_OK;
+       
+    err = esp_modem_process_command_done(dce, MODEM_STATE_SUCCESS);
+    printf("get firmware ver %s\n",line);
+        
+    return err;
+}
+
+/**
+ * @brief Get DCE servingcell
+ *
+ * @param bg96_dce bg96 object
+ * @return esp_err_t
+ *      - ESP_OK on success
+ *      - ESP_FAIL on error
+ */
+static esp_err_t bg96_get_firmware_ver(bg96_modem_dce_t *bg96_dce)
+{
+    modem_dte_t *dte = bg96_dce->parent.dte;
+    bg96_dce->parent.handle_line = bg96_handle_get_firmware_ver;
+    dte->send_cmd(dte, "AT+QGMR\r", MODEM_COMMAND_TIMEOUT_SET_UART_RATE);
+    ESP_LOGD(DCE_TAG, "get firmware_ver ok");
+    return ESP_OK;
+}
+
+
+/**
+ * @brief Handle response from AT+QENG="servingcell"
+ */
+static esp_err_t bg96_handle_get_iccid(modem_dce_t *dce, const char *line)
+{
+    esp_err_t err = ESP_FAIL;
+    
+    if (strstr(line, MODEM_RESULT_CODE_SUCCESS)) {
+        dce->uartRate_set_status = 1;
+        err = esp_modem_process_command_done(dce, MODEM_STATE_SUCCESS);
+    } else if (strstr(line, MODEM_RESULT_CODE_ERROR)) {
+        err = esp_modem_process_command_done(dce, MODEM_STATE_FAIL);
+    } else {       
+        
+        memset(dce->iccid,0,sizeof(dce->iccid));
+        
+        strcpy(dce->iccid,line+8);
+        err = ESP_OK;
+        
+    }
+        
+    return err;
+}
+
+/**
+ * @brief Get DCE iccid
+ *
+ * @param bg96_dce bg96 object
+ * @return esp_err_t
+ *      - ESP_OK on success
+ *      - ESP_FAIL on error
+ */
+static esp_err_t bg96_get_iccid(bg96_modem_dce_t *bg96_dce)
+{
+    modem_dte_t *dte = bg96_dce->parent.dte;
+    bg96_dce->parent.handle_line = bg96_handle_get_iccid;
+    dte->send_cmd(dte, "AT+QCCID\r", MODEM_COMMAND_TIMEOUT_DEFAULT);
+    ESP_LOGD(DCE_TAG, "get iccid ok");
+    return ESP_OK;
+}
+
+/**
+ * @brief Get DCE CGREG , if use LTE-CAT.M use CEREG 
  *
  * @param bg96_dce bg96 object
  * @return esp_err_t
@@ -435,43 +782,117 @@ static esp_err_t bg96_deinit(modem_dce_t *dce)
     return ESP_OK;
 }
 
+void change_ppp_uart_rate(modem_dte_t *dte)
+{
+    esp_modem_dte_t *esp_dte = __containerof(dte, esp_modem_dte_t, parent);
+    ESP_LOGI(DCE_TAG, "set uart port %d ",esp_dte->uart_port);
+    uart_set_baudrate(esp_dte->uart_port, 921600);
+}
+
 modem_dce_t *bg96_init(modem_dte_t *dte)
 {
     DCE_CHECK(dte, "DCE should bind with a DTE", err);
     /* malloc memory for bg96_dce object */
-    bg96_modem_dce_t *bg96_dce = calloc(1, sizeof(bg96_modem_dce_t));
-    DCE_CHECK(bg96_dce, "calloc bg96_dce failed", err);
+    //bg96_modem_dce_t *bg96_dce = calloc(1, sizeof(bg96_modem_dce_t));
+    g_bg96_dce = calloc(1, sizeof(bg96_modem_dce_t));
+    DCE_CHECK(g_bg96_dce, "calloc bg96_dce failed", err);
     /* Bind DTE with DCE */
-    bg96_dce->parent.dte = dte;
-    dte->dce = &(bg96_dce->parent);
+    g_bg96_dce->parent.dte = dte;
+    dte->dce = &(g_bg96_dce->parent);
     /* Bind methods */
-    bg96_dce->parent.handle_line = NULL;
-    bg96_dce->parent.sync = esp_modem_dce_sync;
-    bg96_dce->parent.echo_mode = esp_modem_dce_echo;
-    bg96_dce->parent.store_profile = esp_modem_dce_store_profile;
-    bg96_dce->parent.set_flow_ctrl = esp_modem_dce_set_flow_ctrl;
-    bg96_dce->parent.define_pdp_context = esp_modem_dce_define_pdp_context;
-    bg96_dce->parent.hang_up = esp_modem_dce_hang_up;
-    bg96_dce->parent.get_signal_quality = bg96_get_signal_quality;
-    bg96_dce->parent.get_battery_status = bg96_get_battery_status;
-    bg96_dce->parent.set_working_mode = bg96_set_working_mode;
-    bg96_dce->parent.power_down = bg96_power_down;
-    bg96_dce->parent.deinit = bg96_deinit;
-    /* Sync between DTE and DCE */
-    DCE_CHECK(esp_modem_dce_sync(&(bg96_dce->parent)) == ESP_OK, "sync failed", err_io);
-    /* Close echo */
-    DCE_CHECK(esp_modem_dce_echo(&(bg96_dce->parent), false) == ESP_OK, "close echo mode failed", err_io);
-    /* Get Module name */
-    DCE_CHECK(bg96_get_module_name(bg96_dce) == ESP_OK, "get module name failed", err_io);
-    /* Get IMEI number */
-    DCE_CHECK(bg96_get_imei_number(bg96_dce) == ESP_OK, "get imei failed", err_io);
-    /* Get IMSI number */
-    DCE_CHECK(bg96_get_imsi_number(bg96_dce) == ESP_OK, "get imsi failed", err_io);
-    /* Get operator name */
-    DCE_CHECK(bg96_get_operator_name(bg96_dce) == ESP_OK, "get operator name failed", err_io);
-    return &(bg96_dce->parent);
-err_io:
-    free(bg96_dce);
+    g_bg96_dce->parent.handle_line = NULL;
+    g_bg96_dce->parent.sync = esp_modem_dce_sync;
+    g_bg96_dce->parent.echo_mode = esp_modem_dce_echo;
+    g_bg96_dce->parent.store_profile = esp_modem_dce_store_profile;
+    g_bg96_dce->parent.set_flow_ctrl = esp_modem_dce_set_flow_ctrl;
+    g_bg96_dce->parent.define_pdp_context = esp_modem_dce_define_pdp_context;
+    g_bg96_dce->parent.hang_up = esp_modem_dce_hang_up;
+    g_bg96_dce->parent.get_signal_quality = bg96_get_signal_quality;
+    g_bg96_dce->parent.get_battery_status = bg96_get_battery_status;
+    g_bg96_dce->parent.set_working_mode = bg96_set_working_mode;
+    g_bg96_dce->parent.power_down = bg96_power_down;
+    g_bg96_dce->parent.switch_pppMode = bg96_switch_pppMode;
+    g_bg96_dce->parent.deinit = bg96_deinit;
+    unsigned char cpin_timesout = 0;
+
+    while(1){
+        
+        if(g_bg96_dce->parent.simCard_state != 1){
+            bg96_get_simCard_state(g_bg96_dce);
+            vTaskDelay(500/portTICK_PERIOD_MS);
+            cpin_timesout++;
+            //if(cpin_timesout > 20){
+             //   return NULL;
+            //}
+            //bg96_get_servingcell(g_bg96_dce);
+            //vTaskDelay(500/portTICK_PERIOD_MS);
+            continue;
+        }
+        #if 0
+        if(db_get_lte_uart_rate() != 921600){ // at first, change 4G module uart rate to 921600
+            if(g_bg96_dce->parent.uartRate_set_status == 0){
+                bg96_set_uartRate(g_bg96_dce);
+                vTaskDelay(500/portTICK_PERIOD_MS);
+                continue;
+            }else if(g_bg96_dce->parent.uartRate_set_status == 1){
+                g_bg96_dce->parent.uartRate_set_status = 0;
+                change_ppp_uart_rate(g_bg96_dce->parent.dte);
+                db_set_lte_uart_rate();
+                //bg96_active_uartRate(g_bg96_dce);
+                //vTaskDelay(500/portTICK_PERIOD_MS);
+                continue;
+            }else if(g_bg96_dce->parent.uartRate_set_status == 2){
+                g_bg96_dce->parent.uartRate_set_status = 0;
+                change_ppp_uart_rate(g_bg96_dce->parent.dte);
+                db_set_lte_uart_rate();
+            }
+        }
+        
+		#endif
+        //bg96_get_firmware_ver(g_bg96_dce);
+        bg96_get_lte_connect_status(g_bg96_dce);
+		vTaskDelay(500/portTICK_PERIOD_MS);
+        if(g_bg96_dce->parent.conStatus == '1' || g_bg96_dce->parent.conStatus == '5'){
+            //bg96_get_servingcell(g_bg96_dce);
+            //vTaskDelay(500/portTICK_PERIOD_MS);
+            break;
+        }
+    }
+
+    // /* Sync between DTE and DCE */
+    // esp_modem_dce_sync(&(bg96_dce->parent));
+    // /* Close echo */
+    // esp_modem_dce_echo(&(bg96_dce->parent), false);
+    // /* Get Module name */
+    // bg96_get_module_name(bg96_dce);
+    // /* Get IMEI number */
+    // bg96_get_imei_number(bg96_dce);
+    // /* Get IMSI number */
+    // bg96_get_imsi_number(bg96_dce);
+    // /* Get operator name */
+    // bg96_get_operator_name(bg96_dce);
+     return &(g_bg96_dce->parent);
+
 err:
     return NULL;
 }
+
+void bg96_ppp_start(void)
+{
+    /* Sync between DTE and DCE */
+    esp_modem_dce_sync(&(g_bg96_dce->parent));
+    /* Close echo */
+    esp_modem_dce_echo(&(g_bg96_dce->parent), false);
+    /* Get Module name */
+    bg96_get_module_name(g_bg96_dce);
+    /* Get IMEI number */
+    bg96_get_imei_number(g_bg96_dce);
+    /* Get IMSI number */
+    bg96_get_imsi_number(g_bg96_dce);
+    /* Get operator name */
+    bg96_get_operator_name(g_bg96_dce);
+    /* Get sim card iccid */
+    bg96_get_iccid(g_bg96_dce);
+    
+}
+

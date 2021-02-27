@@ -23,6 +23,9 @@ extern "C" {
 #include "driver/uart.h"
 #include "esp_modem_compat.h"
 
+
+
+
 /**
  * @brief Declare Event Base for ESP Modem
  *
@@ -57,6 +60,18 @@ typedef struct {
  *
  */
 typedef esp_err_t (*esp_modem_on_receive)(void *buffer, size_t len, void *context);
+
+typedef struct {
+    uart_port_t uart_port;                  /*!< UART port */
+    uint8_t *buffer;                        /*!< Internal buffer to store response lines/data from DCE */
+    QueueHandle_t event_queue;              /*!< UART event queue handle */
+    esp_event_loop_handle_t event_loop_hdl; /*!< Event loop handle */
+    TaskHandle_t uart_event_task_hdl;       /*!< UART event task handle */
+    SemaphoreHandle_t process_sem;          /*!< Semaphore used for indicating processing status */
+    modem_dte_t parent;                     /*!< DTE interface that should extend */
+    esp_modem_on_receive         receive_cb;      /*!< ptr to data reception */
+    void                            *receive_cb_ctx; /*!< ptr to rx fn context data */
+} esp_modem_dte_t;
 
 /**
  * @brief ESP Modem DTE Default Configuration

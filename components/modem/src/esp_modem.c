@@ -45,21 +45,6 @@ static const char *MODEM_TAG = "esp-modem";
 
 ESP_EVENT_DEFINE_BASE(ESP_MODEM_EVENT);
 
-/**
- * @brief ESP32 Modem DTE
- *
- */
-typedef struct {
-    uart_port_t uart_port;                  /*!< UART port */
-    uint8_t *buffer;                        /*!< Internal buffer to store response lines/data from DCE */
-    QueueHandle_t event_queue;              /*!< UART event queue handle */
-    esp_event_loop_handle_t event_loop_hdl; /*!< Event loop handle */
-    TaskHandle_t uart_event_task_hdl;       /*!< UART event task handle */
-    SemaphoreHandle_t process_sem;          /*!< Semaphore used for indicating processing status */
-    modem_dte_t parent;                     /*!< DTE interface that should extend */
-    esp_modem_on_receive         receive_cb;      /*!< ptr to data reception */
-    void                            *receive_cb_ctx; /*!< ptr to rx fn context data */
-} esp_modem_dte_t;
 
 
 esp_err_t esp_modem_set_rx_cb(modem_dte_t *dte, esp_modem_on_receive receive_cb, void *receive_cb_ctx)
@@ -143,6 +128,7 @@ static void esp_handle_uart_data(esp_modem_dte_t *esp_dte)
     length = uart_read_bytes(esp_dte->uart_port, esp_dte->buffer, length, portMAX_DELAY);
     /* pass the input data to configured callback */
     if (length) {
+        //printf("ppp rcv len %d \n",length);
         esp_dte->receive_cb(esp_dte->buffer, length, esp_dte->receive_cb_ctx);
     }
 }
@@ -192,7 +178,7 @@ static void uart_event_task_entry(void *param)
         /* Drive the event loop */
         esp_event_loop_run(esp_dte->event_loop_hdl, pdMS_TO_TICKS(50));
     }
-    vTaskDelete(NULL);
+    //vTaskDelete(NULL);
 }
 
 /**
@@ -209,14 +195,17 @@ static esp_err_t esp_modem_dte_send_cmd(modem_dte_t *dte, const char *command, u
 {
     esp_err_t ret = ESP_FAIL;
     modem_dce_t *dce = dte->dce;
+    
     MODEM_CHECK(dce, "DTE has not yet bind with DCE", err);
     MODEM_CHECK(command, "command is NULL", err);
+    time_t len = strlen(command);
     esp_modem_dte_t *esp_dte = __containerof(dte, esp_modem_dte_t, parent);
     /* Calculate timeout clock tick */
     /* Reset runtime information */
     dce->state = MODEM_STATE_PROCESSING;
     /* Send command via UART */
-    uart_write_bytes(esp_dte->uart_port, command, strlen(command));
+    printf("cmd %s \n",command);
+    uart_write_bytes(esp_dte->uart_port, command,len );
     /* Check timeout */
     MODEM_CHECK(xSemaphoreTake(esp_dte->process_sem, pdMS_TO_TICKS(timeout)) == pdTRUE, "process command timeout", err);
     ret = ESP_OK;
@@ -235,10 +224,17 @@ err:
  */
 static int esp_modem_dte_send_data(modem_dte_t *dte, const char *data, uint32_t length)
 {
+    //printf("ppp send data ");
+    if(dte->dce->mode != MODEM_PPP_MODE){
+        printf("dte mode is  PPP mode , return \n");
+        return -1;
+    }
     MODEM_CHECK(data, "data is NULL", err);
     esp_modem_dte_t *esp_dte = __containerof(dte, esp_modem_dte_t, parent);
+    //printf("len %d \n",length);
     return uart_write_bytes(esp_dte->uart_port, data, length);
 err:
+    printf("send data is NULL \n");
     return -1;
 }
 
@@ -381,7 +377,7 @@ modem_dte_t *esp_modem_dte_init(const esp_modem_dte_config_t *config)
         .parity = config->parity,
         .stop_bits = config->stop_bits,
         .source_clk = UART_SCLK_APB,
-        .flow_ctrl = (config->flow_control == MODEM_FLOW_CONTROL_HW) ? UART_HW_FLOWCTRL_CTS_RTS : UART_HW_FLOWCTRL_DISABLE
+        .flow_ctrl = MODEM_FLOW_CONTROL_SW//(config->flow_control == MODEM_FLOW_CONTROL_HW) ? UART_HW_FLOWCTRL_CTS_RTS : UART_HW_FLOWCTRL_DISABLE
     };
     /* Install UART driver and get event queue used inside driver */
     res = uart_driver_install(esp_dte->uart_port, CONFIG_EXAMPLE_UART_RX_BUFFER_SIZE, CONFIG_EXAMPLE_UART_TX_BUFFER_SIZE,

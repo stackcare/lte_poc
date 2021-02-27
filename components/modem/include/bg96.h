@@ -27,7 +27,18 @@ extern "C" {
  * @return modem_dce_t* Modem DCE object
  */
 modem_dce_t *bg96_init(modem_dte_t *dte);
+void bg96_ppp_start(void);
 
+/**
+ * @brief BG96 Modem
+ *
+ */
+typedef struct {
+    void *priv_resource; /*!< Private resource */
+    modem_dce_t parent;  /*!< DCE parent class */
+} bg96_modem_dce_t;
+
+esp_err_t bg96_get_servingcell(bg96_modem_dce_t *bg96_dce);
 #ifdef __cplusplus
 }
 #endif

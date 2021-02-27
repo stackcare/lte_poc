@@ -52,10 +52,10 @@ typedef struct modem_dte modem_dte_t;
  */
 #define MODEM_COMMAND_TIMEOUT_DEFAULT (500)      /*!< Default timeout value for most commands */
 #define MODEM_COMMAND_TIMEOUT_OPERATOR (75000)   /*!< Timeout value for getting operator status */
-#define MODEM_COMMAND_TIMEOUT_MODE_CHANGE (3000) /*!< Timeout value for changing working mode */
+#define MODEM_COMMAND_TIMEOUT_MODE_CHANGE (6000) /*!< Timeout value for changing working mode */
 #define MODEM_COMMAND_TIMEOUT_HANG_UP (90000)    /*!< Timeout value for hang up */
 #define MODEM_COMMAND_TIMEOUT_POWEROFF (1000)    /*!< Timeout value for power down */
-
+#define MODEM_COMMAND_TIMEOUT_SET_UART_RATE (5000)      /*!< Default timeout value for most commands */
 /**
  * @brief Working state of DCE
  *
@@ -66,6 +66,11 @@ typedef enum {
     MODEM_STATE_FAIL        /*!< Process failed */
 } modem_state_t;
 
+typedef struct{
+    char rsrp[5];
+    char rsrq[5];
+    char rssi[5];
+}servingcell_value_t;
 /**
  * @brief DCE(Data Communication Equipment)
  *
@@ -75,15 +80,21 @@ struct modem_dce {
     char imsi[MODEM_IMSI_LENGTH + 1];                                                 /*!< IMSI number */
     char name[MODEM_MAX_NAME_LENGTH];                                                 /*!< Module name */
     char oper[MODEM_MAX_OPERATOR_LENGTH];                                             /*!< Operator name */
+    char iccid[30];  
+    unsigned char conStatus;
+    unsigned char simCard_state;
+    unsigned char  uartRate_set_status;
     modem_state_t state;                                                              /*!< Modem working state */
     modem_mode_t mode;                                                                /*!< Working mode */
-    modem_dte_t *dte;                                                                 /*!< DTE which connect to DCE */
+    modem_dte_t *dte;
+    servingcell_value_t servingcell;                                                             /*!< DTE which connect to DCE */
     esp_err_t (*handle_line)(modem_dce_t *dce, const char *line);                     /*!< Handle line strategy */
     esp_err_t (*sync)(modem_dce_t *dce);                                              /*!< Synchronization */
     esp_err_t (*echo_mode)(modem_dce_t *dce, bool on);                                /*!< Echo command on or off */
     esp_err_t (*store_profile)(modem_dce_t *dce);                                     /*!< Store user settings */
     esp_err_t (*set_flow_ctrl)(modem_dce_t *dce, modem_flow_ctrl_t flow_ctrl);        /*!< Flow control on or off */
     esp_err_t (*get_signal_quality)(modem_dce_t *dce, uint32_t *rssi, uint32_t *ber); /*!< Get signal quality */
+    esp_err_t (*switch_pppMode)(modem_dce_t *dce);   
     esp_err_t (*get_battery_status)(modem_dce_t *dce, uint32_t *bcs,
                                     uint32_t *bcl, uint32_t *voltage);  /*!< Get battery status */
     esp_err_t (*define_pdp_context)(modem_dce_t *dce, uint32_t cid,

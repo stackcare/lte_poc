@@ -18,19 +18,19 @@ menu "Example Configuration"
 
     config EXAMPLE_MODEM_APN
         string "Set Access Point Name (APN)"
-        default "hologram"
+        default "CMNET"
         help
             Logical name which is used to select the GGSN or the external packet data network.
 
     config EXAMPLE_MODEM_PPP_AUTH_USERNAME
         string "Set username for authentication"
-        default ""
+        default "espressif"
         help
             Set username for PPP Authentication.
 
     config EXAMPLE_MODEM_PPP_AUTH_PASSWORD
         string "Set password for authentication"
-        default ""
+        default "esp32"
         help
             Set password for PPP Authentication.
 
@@ -51,29 +51,29 @@ menu "Example Configuration"
     menu "UART Configuration"
         config EXAMPLE_UART_MODEM_TX_PIN
             int "TXD Pin Number"
-            default 33
-            range 0 33
+            default 25
+            range 0 35
             help
                 Pin number of UART TX.
 
         config EXAMPLE_UART_MODEM_RX_PIN
             int "RXD Pin Number"
-            default 17
-            range 0 33
+            default 26
+            range 0 35
             help
                 Pin number of UART RX.
 
         config EXAMPLE_UART_MODEM_RTS_PIN
             int "RTS Pin Number"
             default 27
-            range 0 31
+            range 0 35
             help
                 Pin number of UART RTS.
 
         config EXAMPLE_UART_MODEM_CTS_PIN
             int "CTS Pin Number"
             default 23
-            range 0 31
+            range 0 35
             help
                 Pin number of UART CTS.
 
@@ -115,51 +115,9 @@ menu "Example Configuration"
         config EXAMPLE_UART_RX_BUFFER_SIZE
             int "UART RX Buffer Size"
             range 256 2048
-            default 2048
+            default 1024
             help
                 Buffer size of UART RX buffer.
     endmenu
-
-    config EXAMPLE_NUM_TEST_MESSAGES
-        int "Number of test message"
-        default 100
-        range 1 10000
-        help
-            Number of test MQTT messages to publish.
-
-    config EXAMPLE_INCLUDE_HTTP_TEST
-        bool "Include HTTP test"
-        default n
-        help
-            Include HTTP test in the test loop.
-
-    config EXAMPLE_USE_WIFI
-        bool "Use WiFi"
-        default n
-        help
-            Select this in order to use WiFi instead of LTE.
-
-    if EXAMPLE_USE_WIFI
-        menu "WiFi configuration"
-
-            config ESP_WIFI_SSID
-                string "WiFi SSID"
-                default "myssid"
-                help
-                    SSID (network name) for the example to connect to.
-
-            config ESP_WIFI_PASSWORD
-                string "WiFi Password"
-                default "mypassword"
-                help
-                    WiFi password (WPA or WPA2) for the example to use.
-
-            config ESP_MAXIMUM_RETRY
-                int "Maximum retry"
-                default 5
-                help
-                    Set the Maximum retry to avoid station reconnecting to the AP unlimited when the AP is really inexistent.
-        endmenu
-    endif
 
 endmenu
